@@ -1,0 +1,83 @@
+{
+    "name": "capili-bpo-tracker",
+    "version": "1.0.0",
+    "description": "Capili Business Process Outsourcing – Time Tracker",
+    "author": "Capili Business Process Outsourcing Services",
+    "main": "electron/main.js",
+    "private": true,
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "electron": "electron .",
+        "electron:build:win": "electron-builder --win",
+        "electron:build:mac": "electron-builder --mac",
+        "electron:build:linux": "electron-builder --linux"
+    },
+    "build": {
+        "appId": "com.capilibpo.tracker",
+        "productName": "Capili BPO Tracker",
+        "copyright": "Copyright © 2026 Capili Business Process Outsourcing Services",
+        "directories": {
+            "output": "dist-electron"
+        },
+        "files": [
+            "electron/**/*",
+            "!node_modules/**/*"
+        ],
+        "extraResources": [
+            {
+                "from": "electron/php",
+                "to": "php",
+                "filter": ["**/*"]
+            },
+            {
+                "from": ".",
+                "to": "laravel",
+                "filter": [
+                    "app/**/*",
+                    "bootstrap/**/*",
+                    "config/**/*",
+                    "database/**/*",
+                    "public/**/*",
+                    "resources/**/*",
+                    "routes/**/*",
+                    "storage/**/*",
+                    "vendor/**/*",
+                    "artisan",
+                    ".env"
+                ]
+            }
+        ],
+        "icon": "electron/icons/icon.png",
+        "win": {
+            "target": "nsis",
+            "icon": "electron/icons/icon.ico"
+        },
+        "mac": {
+            "target": "dmg",
+            "icon": "electron/icons/icon.icns",
+            "category": "public.app-category.business"
+        },
+        "linux": {
+            "target": "AppImage",
+            "icon": "electron/icons/icon.png",
+            "category": "Office"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "installerIcon": "electron/icons/icon.ico",
+            "installerHeaderIcon": "electron/icons/icon.ico",
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true,
+            "shortcutName": "Capili BPO Tracker"
+        }
+    },
+    "devDependencies": {
+        "axios": "^1.6.4",
+        "electron": "^30.0.0",
+        "electron-builder": "^24.0.0",
+        "laravel-vite-plugin": "^1.0.0",
+        "vite": "^5.0.0"
+    }
+}

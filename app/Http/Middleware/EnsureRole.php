@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class EnsureRole
+{
+    /**
+     * Usage: ->middleware('role:admin') or ->middleware('role:admin,member')
+     */
+    public function handle(Request $request, Closure $next, string $roles): Response
+    {
+        $allowed = explode(',', $roles);
+        $user = $request->user();
+
+        if (!$user || !in_array($user->role, $allowed, true)) {
+            abort(403, 'You are not authorized to view this page.');
+        }
+
+        return $next($request);
+    }
+}
