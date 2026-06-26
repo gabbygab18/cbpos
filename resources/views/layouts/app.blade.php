@@ -1257,7 +1257,7 @@
                         <a href="{{ route('admin.members.index') }}"
                             class="{{ request()->routeIs('admin.members.*') ? 'active' : '' }}">
                             <i class="bi bi-people"></i>
-                            Members
+                            Employees
                         </a>
                     </li>
                     <li>
@@ -1383,6 +1383,12 @@
                             class="nb-header__profile-chevron"></iconify-icon>
                     </button>
                     <div class="nb-dropdown" id="profileMenu">
+                        <a href="#" class="nb-dropdown__item"
+                            onclick="event.preventDefault(); openPasswordModal();">
+                            <iconify-icon icon="material-symbols:lock-outline" width="15"
+                                height="15"></iconify-icon>
+                            Change Password
+                        </a>
                         <a href="#" class="nb-dropdown__item nb-dropdown__item--logout"
                             onclick="event.preventDefault(); document.getElementById('header-logout-form').submit();">
                             <iconify-icon icon="material-symbols:logout" width="15" height="15"></iconify-icon>
@@ -1494,8 +1500,46 @@
                 }
             });
         }
+
+        function openPasswordModal() {
+            document.getElementById('password-modal').classList.add('open');
+        }
+
+        function closePasswordModal() {
+            document.getElementById('password-modal').classList.remove('open');
+        }
     </script>
     @stack('scripts')
+
+    {{-- ── Change Password Modal ── --}}
+    @auth
+        <div class="modal-overlay" id="password-modal">
+            <div class="modal-box">
+                <h3>Change Password</h3>
+                <form method="POST" action="{{ route('password.update') }}">
+                    @csrf
+                    @method('PUT')
+                    <div class="field">
+                        <label for="current_password">Current Password</label>
+                        <input type="password" name="current_password" id="current_password" required>
+                    </div>
+                    <div class="field">
+                        <label for="new_password">New Password</label>
+                        <input type="password" name="new_password" id="new_password" required minlength="6">
+                    </div>
+                    <div class="field">
+                        <label for="new_password_confirmation">Confirm New Password</label>
+                        <input type="password" name="new_password_confirmation" id="new_password_confirmation" required
+                            minlength="6">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-ghost" onclick="closePasswordModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endauth
 </body>
 
 </html>

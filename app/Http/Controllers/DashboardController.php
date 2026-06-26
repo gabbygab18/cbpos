@@ -56,7 +56,7 @@ class DashboardController extends Controller
     {
         $date = $request->query('date') ?: Carbon::now()->format('Y-m-d');
 
-        $members = User::where('role', User::ROLE_MEMBER)
+        $members = User::where('role', User::ROLE_EMPLOYEE)
             ->orderBy('name')
             ->get();
 

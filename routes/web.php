@@ -15,6 +15,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportTypeController;
 use App\Http\Controllers\TaskLogController;
 use App\Http\Controllers\ShiftLogController;
+use App\Http\Controllers\PasswordController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => redirect()->route('login'));
@@ -31,16 +32,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/tasks/start',          [TaskLogController::class, 'start'])->name('tasks.start');
     Route::post('/tasks/{taskLog}/stop', [TaskLogController::class, 'stop'])->name('tasks.stop');
     Route::delete('/tasks/{taskLog}',    [TaskLogController::class, 'destroy'])->name('tasks.destroy');
-});
-
-Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::post('/tasks/start',          [TaskLogController::class, 'start'])->name('tasks.start');
-    Route::post('/tasks/{taskLog}/stop', [TaskLogController::class, 'stop'])->name('tasks.stop');
-    Route::delete('/tasks/{taskLog}',    [TaskLogController::class, 'destroy'])->name('tasks.destroy');
 
     Route::post('/shift/clock-in',  [ShiftLogController::class, 'clockIn'])->name('shift.in');
     Route::post('/shift/clock-out', [ShiftLogController::class, 'clockOut'])->name('shift.out');
+
+    Route::put('/password', [PasswordController::class, 'update'])->name('password.update');
 });
 
 Route::middleware(['auth', 'role:member'])->prefix('member')->name('member.')->group(function () {
@@ -49,10 +45,10 @@ Route::middleware(['auth', 'role:member'])->prefix('member')->name('member.')->g
     Route::post('/leaves',                       [LeaveRequestController::class, 'store'])->name('leaves.store');
     Route::post('/leaves/{leaveRequest}/cancel', [LeaveRequestController::class, 'cancel'])->name('leaves.cancel');
 
-    Route::post('/notifications/read-all',             [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
-    Route::post('/notifications/{notification}/read',  [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all',            [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
 
-    Route::get('/coaching',                        [CoachingLogController::class, 'memberIndex'])->name('coaching.index');
+    Route::get('/coaching',                         [CoachingLogController::class, 'memberIndex'])->name('coaching.index');
     Route::get('/coaching/{coaching}',              [CoachingLogController::class, 'memberShow'])->name('coaching.show');
     Route::post('/coaching/{coaching}/acknowledge', [CoachingLogController::class, 'acknowledge'])->name('coaching.acknowledge');
 });
@@ -80,7 +76,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/report-types/{reportType}',      [ReportTypeController::class, 'destroy'])->name('report-types.destroy');
 
     // ── Tasks ─────────────────────────────────────────────────────────────────
-    Route::put('/tasks/{taskLog}', [TaskLogController::class, 'update'])->name('tasks.update');
+    Route::put('/tasks/{taskLog}',    [TaskLogController::class, 'update'])->name('tasks.update');
+    Route::delete('/tasks/{taskLog}', [TaskLogController::class, 'destroy'])->name('tasks.destroy');
 
     // ── Reports ───────────────────────────────────────────────────────────────
     Route::get('/reports',          [ReportController::class, 'index'])->name('reports.index');

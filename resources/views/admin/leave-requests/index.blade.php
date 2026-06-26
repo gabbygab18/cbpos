@@ -131,7 +131,7 @@
         </div>
 
         <div class="field">
-            <label for="filter-member">Member</label>
+            <label for="filter-member">Employee</label>
             <select name="member" id="filter-member" onchange="document.getElementById('extra-filters-form').submit()">
                 <option value="">All members</option>
                 @foreach ($members as $member)
@@ -160,7 +160,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Member</th>
+                        <th>Employee</th>
                         <th>Leave Type</th>
                         <th>Dates</th>
                         <th>Days</th>

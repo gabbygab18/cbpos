@@ -19,7 +19,7 @@ class ReportController extends Controller
         $to = $request->query('to') ?: Carbon::now()->format('Y-m-d');
         $memberId = $request->query('user_id');
 
-        $members = User::where('role', User::ROLE_MEMBER)->orderBy('name')->get();
+        $members = User::where('role', User::ROLE_EMPLOYEE)->orderBy('name')->get();
 
         $query = TaskLog::with(['user', 'reportType', 'facility'])
             ->whereBetween('work_date', [$from, $to]);

@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->seedAdmins();
-        $this->seedMembers();
+        $this->seedEmployees();
         $this->seedFacilities();
         $this->seedReportTypes();
     }
@@ -45,9 +45,9 @@ class DatabaseSeeder extends Seeder
         }
     }
 
-    private function seedMembers(): void
+    private function seedEmployees(): void
     {
-        $members = [
+        $employees = [
             ['name' => 'Dharell Sales', 'email' => 'dsales@cbpos.net'],
             ['name' => 'Mailyn Ann Magtalas', 'email' => 'mmagtalas@cbpos.net'],
             ['name' => 'Lilet Navarroza', 'email' => 'lnavarroza@cbpos.net'],
@@ -73,13 +73,13 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Madel Guadalupe', 'email' => 'madelguadalupe18@gmail.com'],
         ];
 
-        foreach ($members as $member) {
+        foreach ($employees as $employee) {
             User::firstOrCreate(
-                ['email' => $member['email']],
+                ['email' => $employee['email']],
                 [
-                    'name' => $member['name'],
+                    'name' => $employee['name'],
                     'password' => Hash::make('password123'),
-                    'role' => User::ROLE_MEMBER,
+                    'role' => User::ROLE_EMPLOYEE,
                     'is_active' => true,
                 ]
             );

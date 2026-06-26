@@ -15,7 +15,7 @@
         <div class="card" style="padding:24px;max-width:720px;">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
                 <div>
-                    <label class="form-label">Member *</label>
+                    <label class="form-label">Employee *</label>
                     <select name="member_id" class="form-control" required>
                         @foreach ($members as $m)
                             <option value="{{ $m->id }}" {{ $engagement->member_id == $m->id ? 'selected' : '' }}>

@@ -1,18 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'Members')
+@section('title', 'Employees')
 
 @section('content')
     <div class="page-head">
         <div>
-            <h1>Members</h1>
+            <h1>Employees</h1>
             <p class="subtitle">3 admins can edit logged time/date; members can only start and stop their own tasks.</p>
         </div>
     </div>
 
     <div class="card">
         <h2>Add account</h2>
-        <form method="POST" action="{{ route('admin.members.store') }}" class="form-row" style="align-items:flex-end; flex-wrap:wrap;">
+        <form method="POST" action="{{ route('admin.members.store') }}" class="form-row"
+            style="align-items:flex-end; flex-wrap:wrap;">
             @csrf
             <div class="field" style="min-width:160px;">
                 <label>Name</label>
@@ -29,7 +30,7 @@
             <div class="field" style="min-width:120px;">
                 <label>Role</label>
                 <select name="role" required>
-                    <option value="member">Member</option>
+                    <option value="member">Employee</option>
                     <option value="admin">Admin</option>
                 </select>
             </div>
@@ -58,14 +59,17 @@
                         <td class="text-muted">{{ $member->email }}</td>
                         <td><span class="badge badge-{{ $member->role }}">{{ ucfirst($member->role) }}</span></td>
                         <td>
-                            <span class="badge badge-{{ $member->is_active ? 'active' : 'inactive' }}">{{ $member->is_active ? 'Active' : 'Inactive' }}</span>
+                            <span
+                                class="badge badge-{{ $member->is_active ? 'active' : 'inactive' }}">{{ $member->is_active ? 'Active' : 'Inactive' }}</span>
                         </td>
                         <td style="display:flex; gap:6px;">
-                            <button type="button" class="btn btn-ghost btn-sm" onclick="openEditMember({{ $member->id }}, '{{ $member->name }}', '{{ $member->email }}', '{{ $member->role }}')">Edit</button>
+                            <button type="button" class="btn btn-ghost btn-sm"
+                                onclick="openEditMember({{ $member->id }}, '{{ $member->name }}', '{{ $member->email }}', '{{ $member->role }}')">Edit</button>
                             @if ($member->id !== auth()->id())
                                 <form method="POST" action="{{ route('admin.members.toggle', $member) }}">
                                     @csrf
-                                    <button type="submit" class="btn btn-ghost btn-sm">{{ $member->is_active ? 'Deactivate' : 'Activate' }}</button>
+                                    <button type="submit"
+                                        class="btn btn-ghost btn-sm">{{ $member->is_active ? 'Deactivate' : 'Activate' }}</button>
                                 </form>
                             @endif
                         </td>
@@ -92,7 +96,7 @@
                 <div class="field">
                     <label>Role</label>
                     <select name="role" id="edit-role" required>
-                        <option value="member">Member</option>
+                        <option value="member">Employee</option>
                         <option value="admin">Admin</option>
                     </select>
                 </div>
@@ -110,16 +114,17 @@
 @endsection
 
 @push('scripts')
-<script>
-    function openEditMember(id, name, email, role) {
-        document.getElementById('edit-form').action = `/admin/members/${id}`;
-        document.getElementById('edit-name').value = name;
-        document.getElementById('edit-email').value = email;
-        document.getElementById('edit-role').value = role;
-        document.getElementById('edit-modal').classList.add('open');
-    }
-    function closeEditMember() {
-        document.getElementById('edit-modal').classList.remove('open');
-    }
-</script>
+    <script>
+        function openEditMember(id, name, email, role) {
+            document.getElementById('edit-form').action = `/admin/members/${id}`;
+            document.getElementById('edit-name').value = name;
+            document.getElementById('edit-email').value = email;
+            document.getElementById('edit-role').value = role;
+            document.getElementById('edit-modal').classList.add('open');
+        }
+
+        function closeEditMember() {
+            document.getElementById('edit-modal').classList.remove('open');
+        }
+    </script>
 @endpush

@@ -88,6 +88,18 @@
                                     onclick="openEdit({{ $log->id }}, '{{ optional($log->reportType)->id }}', '{{ optional($log->facility)->id }}', '{{ $log->work_date->format('Y-m-d') }}', '{{ $log->started_at->format('H:i') }}', '{{ $log->ended_at ? $log->ended_at->format('H:i') : '' }}')">
                                     Edit
                                 </button>
+
+                                {{-- DELETE --}}
+                                <form method="POST" action="{{ route('admin.tasks.destroy', $log) }}"
+                                    style="display:inline;"
+                                    onsubmit="return confirm('Delete this task log? This cannot be undone.')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-ghost btn-sm"
+                                        style="color:var(--danger, #e53e3e);">
+                                        Delete
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     @endforeach

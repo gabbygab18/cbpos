@@ -22,7 +22,7 @@ class MemberController extends Controller
             'name' => 'required|string|max:150',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'role' => 'required|in:admin,member',
+            'role' => 'required|in:admin,employee',
         ]);
 
         User::create([
@@ -41,7 +41,7 @@ class MemberController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:150',
             'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($member->id)],
-            'role' => 'required|in:admin,member',
+            'role' => 'required|in:admin,employee',
             'password' => 'nullable|string|min:6',
         ]);
 

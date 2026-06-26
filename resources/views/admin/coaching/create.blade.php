@@ -19,7 +19,7 @@
                     Basic Info</h3>
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
                     <div>
-                        <label class="form-label">Member *</label>
+                        <label class="form-label">Employee *</label>
                         <select name="member_id" class="form-control" required>
                             <option value="">Select member</option>
                             @foreach ($members as $m)

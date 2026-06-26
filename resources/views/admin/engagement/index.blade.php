@@ -16,10 +16,10 @@
         <form method="GET" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
             <div>
                 <label
-                    style="font-size:12px;font-weight:600;color:var(--slate);display:block;margin-bottom:4px;">Member</label>
+                    style="font-size:12px;font-weight:600;color:var(--slate);display:block;margin-bottom:4px;">Employee</label>
                 <select name="member_id" onchange="this.form.submit()"
                     style="border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;">
-                    <option value="">All Members</option>
+                    <option value="">All Employees</option>
                     @foreach ($members as $m)
                         <option value="{{ $m->id }}" {{ request('member_id') == $m->id ? 'selected' : '' }}>
                             {{ $m->name }}</option>
@@ -51,7 +51,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Member</th>
+                        <th>Employee</th>
                         <th>Type</th>
                         <th>Title</th>
                         <th>Score</th>

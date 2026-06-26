@@ -3,7 +3,7 @@
 @section('title', 'Team Overview')
 
 @section('content')
-    <div class="page-head">
+    <div class="page-head no-print">
         <div>
             <h1>Team Overview</h1>
             <p class="subtitle">{{ \Carbon\Carbon::parse($date)->format('l, F j, Y') }}</p>
@@ -17,18 +17,28 @@
                 <iconify-icon icon="material-symbols:bar-chart-4-bars-outline" width="15" height="15"></iconify-icon>
                 Full Reports
             </a>
+            <button onclick="window.print()" class="btn btn-primary btn-sm">
+                <iconify-icon icon="material-symbols:print-outline" width="15" height="15"></iconify-icon>
+                Print Summary
+            </button>
         </div>
     </div>
 
+    {{-- ── Print header (only visible when printing) ── --}}
+    <div class="print-only print-header">
+        <h1>Shift Summary</h1>
+        <p>{{ \Carbon\Carbon::parse($date)->format('l, F j, Y') }}</p>
+    </div>
+
     {{-- ── Summary stat cards ── --}}
-    <div class="stat-grid">
+    <div class="stat-grid no-print">
         <div class="stat-card">
             <div class="stat-card__icon teal">
                 <iconify-icon icon="material-symbols:group-outline" width="22" height="22"></iconify-icon>
             </div>
             <div class="stat-card__body">
                 <div class="stat-card__num">{{ $summaries->count() }}</div>
-                <div class="stat-card__label">Total Members</div>
+                <div class="stat-card__label">Total Employees</div>
             </div>
         </div>
         <div class="stat-card">
@@ -90,7 +100,7 @@
                 ->take(3)
                 ->get();
         @endphp
-        <div class="card" style="border-left: 3px solid var(--amber); margin-bottom: 20px;">
+        <div class="card no-print" style="border-left: 3px solid var(--amber); margin-bottom: 20px;">
             <div class="card-header">
                 <h2 style="color:var(--amber);">
                     <iconify-icon icon="material-symbols:warning-outline" width="16" height="16"
@@ -102,7 +112,7 @@
             <table class="compact">
                 <thead>
                     <tr>
-                        <th>Member</th>
+                        <th>Employee</th>
                         <th>Type</th>
                         <th>Dates</th>
                         <th>Days</th>
@@ -133,10 +143,62 @@
         </div>
     @endif
 
-    {{-- ── Member summaries ── --}}
+    {{-- ── Print-only shift summary table ── --}}
+    <div class="print-only">
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Clock In</th>
+                    <th>Clock Out</th>
+                    <th>Shift Duration</th>
+                    <th>Tasks</th>
+                    <th>Hours Worked</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($summaries as $row)
+                    @php
+                        $shift = $row['shift'];
+                        $tz = 'Asia/Manila';
+                        $onShift = $shift && $shift->isOnShift();
+                        $shiftEnded = $shift && !$shift->isOnShift();
+                    @endphp
+                    <tr>
+                        <td>{{ $row['user']->name }}</td>
+                        <td>{{ $shift ? $shift->login_at->setTimezone($tz)->format('g:i A') : '—' }}</td>
+                        <td>{{ $shiftEnded ? $shift->logout_at->setTimezone($tz)->format('g:i A') : '—' }}</td>
+                        <td>{{ $shift ? \App\Support\Duration::short($shift->shiftDurationMinutes()) : '—' }}</td>
+                        <td>{{ $row['task_count'] }}</td>
+                        <td>{{ \App\Support\Duration::decimalHours($row['total_minutes']) }}</td>
+                        <td>
+                            @if ($onShift)
+                                On Shift
+                            @elseif ($shiftEnded)
+                                Shift Ended
+                            @else
+                                No Shift
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4"><strong>Totals</strong></td>
+                    <td><strong>{{ $summaries->sum('task_count') }}</strong></td>
+                    <td><strong>{{ \App\Support\Duration::decimalHours($summaries->sum('total_minutes')) }}</strong></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    {{-- ── Employee summaries ── --}}
     @if ($summaries->isEmpty())
         <div class="card">
-            <div class="empty-state">No members yet. Add your team under Members.</div>
+            <div class="empty-state">No employees yet. Add your team under Employees.</div>
         </div>
     @endif
 
@@ -147,7 +209,7 @@
             $shiftEnded = $shift && !$shift->isOnShift();
             $tz = 'Asia/Manila';
         @endphp
-        <div class="card">
+        <div class="card no-print">
             <div
                 style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 14px; flex-wrap:wrap; gap:10px;">
                 <div>
@@ -158,7 +220,6 @@
                     </span>
                 </div>
                 <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                    {{-- Shift status badge --}}
                     @if ($onShift)
                         <span class="badge badge-on-shift">
                             <span
@@ -182,7 +243,6 @@
                         <span class="badge badge-inactive">No Shift</span>
                     @endif
 
-                    {{-- Task activity badge --}}
                     @if ($row['has_running'])
                         <span class="badge badge-running">
                             <span
@@ -199,7 +259,6 @@
                 </div>
             </div>
 
-            {{-- Shift time row --}}
             @if ($shift)
                 <div class="shift-summary-row">
                     <iconify-icon icon="material-symbols:schedule-outline" width="13" height="13"></iconify-icon>
@@ -297,12 +356,69 @@
             background: #e6f4ee;
             color: #0a6640;
         }
+
+        /* ── Print ── */
+        .print-only {
+            display: none;
+        }
+
+        @media print {
+
+            .no-print,
+            .topbar {
+                display: none !important;
+            }
+
+            .print-only {
+                display: block !important;
+            }
+
+            .print-header {
+                margin-bottom: 20px;
+            }
+
+            .print-header h1 {
+                font-size: 20px;
+                margin: 0 0 4px;
+            }
+
+            .print-header p {
+                font-size: 13px;
+                color: #555;
+                margin: 0;
+            }
+
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 12px;
+            }
+
+            .print-table th,
+            .print-table td {
+                border: 1px solid #ccc;
+                padding: 6px 10px;
+                text-align: left;
+            }
+
+            .print-table thead {
+                background: #f0f0f0;
+            }
+
+            .print-table tfoot {
+                background: #f8f8f8;
+                font-weight: bold;
+            }
+
+            body {
+                background: #fff;
+            }
+        }
     </style>
 @endpush
 
 @push('scripts')
     <script>
-        // Live shift-clock tickers for on-shift members (admin view)
         document.querySelectorAll('.shift-clock[data-login]').forEach(el => {
             const started = parseInt(el.dataset.login);
 

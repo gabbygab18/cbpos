@@ -20,7 +20,7 @@
                 <div>
                     <p
                         style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--slate);margin-bottom:4px;">
-                        Member</p>
+                        Employee</p>
                     <p><strong>{{ $pip->member->name }}</strong></p>
                 </div>
                 <div>
