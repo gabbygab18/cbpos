@@ -26,9 +26,11 @@ class ShiftLogController extends Controller
                 'work_date' => $today,
                 'login_at'  => Carbon::now(),
             ]);
+
+            return back()->with('status', 'Clocked in.');
         }
 
-        return back()->with('status', 'Clocked in.');
+        return back()->with('error', 'You are already on shift. Please time out first.');
     }
 
     /** Clock out — end the current open shift, if any. */
@@ -45,8 +47,10 @@ class ShiftLogController extends Controller
 
         if ($openLog) {
             $openLog->update(['logout_at' => Carbon::now()]);
+
+            return back()->with('status', 'Clocked out.');
         }
 
-        return back()->with('status', 'Clocked out.');
+        return back()->with('error', 'No active shift found.');
     }
 }

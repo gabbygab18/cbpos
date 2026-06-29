@@ -91,6 +91,91 @@
         </div>
     </div>
 
+    {{-- ── Attendance Log Section ── --}}
+    <div class="card no-print" style="margin-top: 24px;">
+        <div class="card-header" style="margin-bottom: 0;">
+            <h2>
+                <iconify-icon icon="material-symbols:fingerprint" width="18" height="18"
+                    style="vertical-align:-3px; margin-right:6px;"></iconify-icon>
+                Attendance Log
+                <span class="text-muted" style="font-size:13px; font-weight:400; margin-left:8px;">
+                    {{ \Carbon\Carbon::parse($date)->format('l, F j, Y') }}
+                </span>
+            </h2>
+            <button onclick="toggleAttendance()" id="attendance-toggle-btn" class="btn btn-ghost btn-sm"
+                style="display:flex; align-items:center; gap:4px;">
+                <iconify-icon icon="material-symbols:expand-less" width="16" height="16"
+                    id="attendance-toggle-icon"></iconify-icon>
+                Hide
+            </button>
+        </div>
+
+        <div id="attendance-log-body" style="margin-top: 16px;">
+            @if ($attendanceLogs->isEmpty())
+                <div class="empty-state" style="padding: 16px;">
+                    No attendance records for this date.
+                </div>
+            @else
+                <table class="compact">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Time In</th>
+                            <th>Time Out</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($attendanceLogs as $log)
+                            @php
+                                $tz = 'Asia/Manila';
+                                $isOpen = $log->isOnShift();
+                            @endphp
+                            <tr>
+                                <td><strong>{{ $log->user->name }}</strong></td>
+                                <td class="mono nowrap">
+                                    {{ $log->login_at->setTimezone($tz)->format('g:i A') }}
+                                </td>
+                                <td class="mono nowrap">
+                                    {{ $isOpen ? '—' : $log->logout_at->setTimezone($tz)->format('g:i A') }}
+                                </td>
+                                <td class="mono">
+                                    {{ \App\Support\Duration::short($log->shiftDurationMinutes()) }}
+                                </td>
+                                <td>
+                                    @if ($isOpen)
+                                        <span class="badge badge-on-shift">
+                                            <span
+                                                style="width:6px;height:6px;border-radius:50%;
+                                            background:currentColor;margin-right:5px;
+                                            animation:pulse 1.4s infinite;
+                                            display:inline-block;"></span>
+                                            On Shift
+                                        </span>
+                                    @else
+                                        <span class="badge badge-shift-ended">Shift Ended</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td><strong>{{ $attendanceLogs->count() }}
+                                    record{{ $attendanceLogs->count() != 1 ? 's' : '' }}</strong></td>
+                            <td colspan="4" class="text-muted" style="font-size:12px;">
+                                {{ $attendanceLogs->where('logout_at', null)->count() }} on shift
+                                &middot;
+                                {{ $attendanceLogs->whereNotNull('logout_at')->count() }} clocked out
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            @endif
+        </div>
+    </div>
+
     {{-- ── Pending leave quick-view ── --}}
     @if ($pendingLeaves > 0)
         @php
@@ -134,7 +219,8 @@
                             </td>
                             <td>{{ number_format($lr->total_days, 0) }}d</td>
                             <td>
-                                <a href="{{ route('admin.leave-requests.index') }}" class="btn btn-ghost btn-sm">Review</a>
+                                <a href="{{ route('admin.leave-requests.index') }}"
+                                    class="btn btn-ghost btn-sm">Review</a>
                             </td>
                         </tr>
                     @endforeach
@@ -322,7 +408,11 @@
             @endif
         </div>
     @endforeach
+
+
 @endsection
+
+
 
 @push('styles')
     <style>
@@ -432,5 +522,18 @@
             tick();
             setInterval(tick, 1000);
         });
+
+        function toggleAttendance() {
+            const body = document.getElementById('attendance-log-body');
+            const icon = document.getElementById('attendance-toggle-icon');
+            const btn = document.getElementById('attendance-toggle-btn');
+            const isHidden = body.style.display === 'none';
+
+            body.style.display = isHidden ? 'block' : 'none';
+            icon.setAttribute('icon', isHidden ?
+                'material-symbols:expand-less' :
+                'material-symbols:expand-more');
+            btn.childNodes[1].textContent = isHidden ? ' Hide' : ' Show';
+        }
     </script>
 @endpush

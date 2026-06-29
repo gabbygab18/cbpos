@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendanceCorrectionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CoachingLogController;
 use App\Http\Controllers\DashboardController;
@@ -39,7 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/password', [PasswordController::class, 'update'])->name('password.update');
 });
 
-Route::middleware(['auth', 'role:member'])->prefix('member')->name('member.')->group(function () {
+Route::middleware(['auth', 'role:employee'])->prefix('member')->name('member.')->group(function () {
     Route::get('/leaves',                        [LeaveRequestController::class, 'memberIndex'])->name('leaves.index');
     Route::get('/leaves/file',                   [LeaveRequestController::class, 'create'])->name('leaves.create');
     Route::post('/leaves',                       [LeaveRequestController::class, 'store'])->name('leaves.store');
@@ -51,6 +52,11 @@ Route::middleware(['auth', 'role:member'])->prefix('member')->name('member.')->g
     Route::get('/coaching',                         [CoachingLogController::class, 'memberIndex'])->name('coaching.index');
     Route::get('/coaching/{coaching}',              [CoachingLogController::class, 'memberShow'])->name('coaching.show');
     Route::post('/coaching/{coaching}/acknowledge', [CoachingLogController::class, 'acknowledge'])->name('coaching.acknowledge');
+
+    // ── Attendance Correction Requests ────────────────────────────────────────
+    Route::get('/corrections',        [AttendanceCorrectionController::class, 'index'])->name('corrections.index');
+    Route::get('/corrections/create', [AttendanceCorrectionController::class, 'create'])->name('corrections.create');
+    Route::post('/corrections',       [AttendanceCorrectionController::class, 'store'])->name('corrections.store');
 });
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -95,14 +101,17 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/leave-requests/{leaveRequest}/approve', [LeaveRequestController::class, 'approve'])->name('leave-requests.approve');
     Route::post('/leave-requests/{leaveRequest}/reject',  [LeaveRequestController::class, 'reject'])->name('leave-requests.reject');
 
+    // ── Attendance Correction Requests ────────────────────────────────────────
+    Route::get('/corrections',                              [App\Http\Controllers\Admin\AttendanceCorrectionController::class, 'index'])->name('corrections.index');
+    Route::post('/corrections/{correction}/approve',        [App\Http\Controllers\Admin\AttendanceCorrectionController::class, 'approve'])->name('corrections.approve');
+    Route::post('/corrections/{correction}/reject',         [App\Http\Controllers\Admin\AttendanceCorrectionController::class, 'reject'])->name('corrections.reject');
+
     // ── Performance ───────────────────────────────────────────────────────────
     Route::resource('coaching',   CoachingLogController::class);
     Route::resource('pip',        PipRecordController::class);
     Route::resource('engagement', EngagementRecordController::class);
 
     // ── Org Chart ─────────────────────────────────────────────────────────────
-    // IMPORTANT: reorder must be declared BEFORE Route::resource so Laravel
-    // does not swallow /orgchart/reorder as a show({orgchart}) parameter.
     Route::post('orgchart/reorder', [OrgChartController::class, 'reorder'])->name('orgchart.reorder');
     Route::resource('orgchart', OrgChartController::class);
 });

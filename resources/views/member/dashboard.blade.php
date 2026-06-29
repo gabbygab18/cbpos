@@ -139,16 +139,69 @@
         </div>
     </div>
 
-    {{-- ── Quick actions ── --}}
-    <div class="quick-actions">
-        <a href="{{ route('member.leaves.create') }}" class="quick-btn">
-            <iconify-icon icon="material-symbols:add-circle-outline" width="18" height="18"></iconify-icon>
-            File Leave
-        </a>
-        <a href="{{ route('member.leaves.index') }}" class="quick-btn">
-            <iconify-icon icon="material-symbols:event-available-outline" width="18" height="18"></iconify-icon>
-            My Leave History
-        </a>
+
+    {{-- ── Attendance ── --}}
+    <div class="card">
+        <div class="card-header">
+            <h2>
+                <iconify-icon icon="material-symbols:schedule-outline" width="16" height="16"
+                    style="vertical-align:-2px;"></iconify-icon>
+                Today's Attendance
+            </h2>
+        </div>
+
+        @if ($shiftLog)
+            @php
+                $tz = 'Asia/Manila';
+                $onShift = $shiftLog->isOnShift();
+            @endphp
+            <div class="stat-row" style="margin-bottom:0;">
+                <div class="stat">
+                    <div class="num" style="font-size:20px;">
+                        {{ $shiftLog->login_at->setTimezone($tz)->format('g:i A') }}
+                    </div>
+                    <div class="label">Time In</div>
+                </div>
+                <div class="stat">
+                    <div class="num" style="font-size:20px;">
+                        @if ($onShift)
+                            <span style="color:var(--slate);">—</span>
+                        @else
+                            {{ $shiftLog->logout_at->setTimezone($tz)->format('g:i A') }}
+                        @endif
+                    </div>
+                    <div class="label">Time Out</div>
+                </div>
+                <div class="stat">
+                    <div class="num" style="font-size:20px;">
+                        @if ($onShift)
+                            <span id="attendance-clock" class="mono" style="font-size:18px;">—</span>
+                        @else
+                            {{ \App\Support\Duration::short($shiftLog->shiftDurationMinutes()) }}
+                        @endif
+                    </div>
+                    <div class="label">Total Shift Time</div>
+                </div>
+                <div class="stat">
+                    <div class="num" style="font-size:20px;">
+                        @if ($onShift)
+                            <span class="badge badge-on-shift" style="font-size:12px;">
+                                <span
+                                    style="width:6px;height:6px;border-radius:50%;background:currentColor;margin-right:5px;animation:pulse 1.4s infinite;display:inline-block;"></span>
+                                On Shift
+                            </span>
+                        @else
+                            <span class="badge badge-inactive">Shift Ended</span>
+                        @endif
+                    </div>
+                    <div class="label">Status</div>
+                </div>
+            </div>
+        @else
+            <div class="empty-state" style="padding:20px;">
+                You haven't timed in today.
+            </div>
+        @endif
     </div>
 
     {{-- ── Timer banner (running task) ── --}}
@@ -406,6 +459,13 @@
             opacity: 0.8;
             margin-left: 2px;
         }
+
+        .badge-on-shift {
+            background: #e6f4ee;
+            color: #0a6640;
+            display: inline-flex;
+            align-items: center;
+        }
     </style>
 @endpush
 
@@ -444,5 +504,23 @@
             tickShift();
             setInterval(tickShift, 1000);
         }
+
+        // Attendance shift clock
+        @if ($shiftLog && $shiftLog->isOnShift())
+            const attendanceClock = document.getElementById('attendance-clock');
+            if (attendanceClock) {
+                const loginTs = {{ $shiftLog->login_at->timestamp * 1000 }};
+
+                function tickAttendance() {
+                    const diff = Math.max(0, Math.floor((Date.now() - loginTs) / 1000));
+                    const h = String(Math.floor(diff / 3600)).padStart(2, '0');
+                    const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+                    const s = String(diff % 60).padStart(2, '0');
+                    attendanceClock.textContent = h + ':' + m + ':' + s;
+                }
+                tickAttendance();
+                setInterval(tickAttendance, 1000);
+            }
+        @endif
     </script>
 @endpush

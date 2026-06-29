@@ -1295,6 +1295,18 @@
                         </a>
                     </li>
 
+                    <li>
+                        <a href="{{ route('admin.corrections.index') }}"
+                            class="{{ request()->routeIs('admin.corrections.*') ? 'active' : '' }}">
+                            <i class="bi bi-pencil-square"></i>
+                            Corrections
+                            @php $pendingCorrections = \App\Models\AttendanceCorrectionRequest::pending()->count(); @endphp
+                            @if ($pendingCorrections > 0)
+                                <span class="nav-badge">{{ $pendingCorrections }}</span>
+                            @endif
+                        </a>
+                    </li>
+
                     <li class="sidebar-nav-header">Performance</li>
                     <li>
                         <a href="{{ route('admin.coaching.index') }}"
@@ -1339,6 +1351,13 @@
                             class="{{ request()->routeIs('member.leaves.create') ? 'active' : '' }}">
                             <i class="bi bi-plus-circle"></i>
                             File Leave
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('member.corrections.index') }}"
+                            class="{{ request()->routeIs('member.corrections.*') ? 'active' : '' }}">
+                            <i class="bi bi-pencil-square"></i>
+                            Corrections
                         </a>
                     </li>
                 @endif

@@ -31,10 +31,9 @@ class DashboardController extends Controller
             ->orderByDesc('started_at')
             ->get();
 
-        $runningLog  = $logs->firstWhere('status', TaskLog::STATUS_RUNNING);
+        $runningLog   = $logs->firstWhere('status', TaskLog::STATUS_RUNNING);
         $totalMinutes = $logs->where('status', TaskLog::STATUS_COMPLETED)->sum('duration_minutes');
 
-        // Today's shift (login log for current session)
         $shiftLog = LoginLog::where('user_id', $user->id)
             ->forDate($today)
             ->latest('id')
@@ -66,7 +65,6 @@ class DashboardController extends Controller
             ->get()
             ->groupBy('user_id');
 
-        // Shift logs for today (latest per user)
         $shiftsByUser = LoginLog::forDate($date)
             ->get()
             ->groupBy('user_id')
@@ -87,9 +85,15 @@ class DashboardController extends Controller
             ];
         });
 
+        $attendanceLogs = LoginLog::with('user')
+            ->forDate($date)
+            ->orderBy('login_at')
+            ->get();
+
         return view('admin.dashboard', [
-            'summaries' => $summaries,
-            'date'      => $date,
+            'summaries'      => $summaries,
+            'date'           => $date,
+            'attendanceLogs' => $attendanceLogs,
         ]);
     }
 }

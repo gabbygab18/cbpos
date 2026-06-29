@@ -30,7 +30,7 @@
             <div class="field" style="min-width:120px;">
                 <label>Role</label>
                 <select name="role" required>
-                    <option value="member">Employee</option>
+                    <option value="employee">Employee</option>
                     <option value="admin">Admin</option>
                 </select>
             </div>
@@ -96,7 +96,7 @@
                 <div class="field">
                     <label>Role</label>
                     <select name="role" id="edit-role" required>
-                        <option value="member">Employee</option>
+                        <option value="employee">Employee</option>
                         <option value="admin">Admin</option>
                     </select>
                 </div>
