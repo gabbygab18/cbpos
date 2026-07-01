@@ -8,49 +8,45 @@ use Illuminate\Http\Request;
 
 class ShiftLogController extends Controller
 {
-    /** Clock in — start a new shift for today. */
+    /** Clock in — start a new shift. */
     public function clockIn(Request $request)
     {
-        $user  = $request->user();
-        $today = Carbon::now()->format('Y-m-d');
+        $user = $request->user();
 
         $openLog = LoginLog::where('user_id', $user->id)
-            ->where('work_date', $today)
-            ->whereNull('logout_at')
-            ->latest('id')
-            ->first();
-
-        if (!$openLog) {
-            LoginLog::create([
-                'user_id'   => $user->id,
-                'work_date' => $today,
-                'login_at'  => Carbon::now(),
-            ]);
-
-            return back()->with('status', 'Clocked in.');
-        }
-
-        return back()->with('error', 'You are already on shift. Please time out first.');
-    }
-
-    /** Clock out — end the current open shift, if any. */
-    public function clockOut(Request $request)
-    {
-        $user  = $request->user();
-        $today = Carbon::now()->format('Y-m-d');
-
-        $openLog = LoginLog::where('user_id', $user->id)
-            ->where('work_date', $today)
             ->whereNull('logout_at')
             ->latest('id')
             ->first();
 
         if ($openLog) {
-            $openLog->update(['logout_at' => Carbon::now()]);
-
-            return back()->with('status', 'Clocked out.');
+            return back()->with('error', 'You are already on shift. Please time out first.');
         }
 
-        return back()->with('error', 'No active shift found.');
+        LoginLog::create([
+            'user_id'   => $user->id,
+            'work_date' => Carbon::now()->format('Y-m-d'), // anchor date = day shift started
+            'login_at'  => Carbon::now(),
+        ]);
+
+        return back()->with('status', 'Clocked in.');
+    }
+
+    /** Clock out — end the current open shift, regardless of what calendar day it is now. */
+    public function clockOut(Request $request)
+    {
+        $user = $request->user();
+
+        $openLog = LoginLog::where('user_id', $user->id)
+            ->whereNull('logout_at')
+            ->latest('id')
+            ->first();
+
+        if (!$openLog) {
+            return back()->with('error', 'No active shift found.');
+        }
+
+        $openLog->update(['logout_at' => Carbon::now()]);
+
+        return back()->with('status', 'Clocked out.');
     }
 }
