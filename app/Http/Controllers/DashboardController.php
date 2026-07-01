@@ -25,19 +25,29 @@ class DashboardController extends Controller
     {
         $today = Carbon::now()->format('Y-m-d');
 
+        // Today's logs, PLUS any running task regardless of which day it started
+        // (so an overnight task doesn't vanish from view once midnight passes).
         $logs = TaskLog::with(['reportType', 'facility'])
             ->where('user_id', $user->id)
-            ->forWorkDate($today)
+            ->forWorkDateOrRunning($today)
             ->orderByDesc('started_at')
             ->get();
 
         $runningLog   = $logs->firstWhere('status', TaskLog::STATUS_RUNNING);
         $totalMinutes = $logs->where('status', TaskLog::STATUS_COMPLETED)->sum('duration_minutes');
 
+        // Prefer an open shift regardless of start date; fall back to today's shift log.
         $shiftLog = LoginLog::where('user_id', $user->id)
-            ->forDate($today)
+            ->open()
             ->latest('id')
             ->first();
+
+        if (!$shiftLog) {
+            $shiftLog = LoginLog::where('user_id', $user->id)
+                ->forDate($today)
+                ->latest('id')
+                ->first();
+        }
 
         return view('member.dashboard', [
             'logs'         => $logs,
@@ -53,14 +63,21 @@ class DashboardController extends Controller
 
     private function adminOverview(Request $request)
     {
-        $date = $request->query('date') ?: Carbon::now()->format('Y-m-d');
+        $date    = $request->query('date') ?: Carbon::now()->format('Y-m-d');
+        $isToday = $date === Carbon::now()->format('Y-m-d');
 
         $members = User::where('role', User::ROLE_EMPLOYEE)
             ->orderBy('name')
             ->get();
 
+        // For "today", also catch running tasks that started on a previous date.
+        // For any other (historical) date, keep strict work_date filtering.
         $logsByUser = TaskLog::with(['reportType', 'facility'])
-            ->forWorkDate($date)
+            ->when(
+                $isToday,
+                fn ($q) => $q->forWorkDateOrRunning($date),
+                fn ($q) => $q->forWorkDate($date)
+            )
             ->orderBy('started_at')
             ->get()
             ->groupBy('user_id');
@@ -69,6 +86,19 @@ class DashboardController extends Controller
             ->get()
             ->groupBy('user_id')
             ->map(fn ($rows) => $rows->sortByDesc('id')->first());
+
+        // For "today", also surface shifts that are still open even if they
+        // started on a previous calendar date (overnight shifts).
+        if ($isToday) {
+            $openShifts = LoginLog::open()
+                ->get()
+                ->groupBy('user_id')
+                ->map(fn ($rows) => $rows->sortByDesc('id')->first());
+
+            foreach ($openShifts as $userId => $shift) {
+                $shiftsByUser[$userId] = $shift;
+            }
+        }
 
         $summaries = $members->map(function ($member) use ($logsByUser, $shiftsByUser) {
             $logs      = $logsByUser->get($member->id, collect());

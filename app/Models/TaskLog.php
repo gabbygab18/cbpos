@@ -99,4 +99,19 @@ class TaskLog extends Model
     {
         return $query->whereDate('work_date', Carbon::parse($date)->format('Y-m-d'));
     }
+
+    /**
+     * Scope: logs matching the given work_date, OR currently running
+     * regardless of which date they started on. Used by dashboards so an
+     * overnight task doesn't disappear from "today" once midnight passes.
+     */
+    public function scopeForWorkDateOrRunning($query, $date)
+    {
+        $date = Carbon::parse($date)->format('Y-m-d');
+
+        return $query->where(function ($q) use ($date) {
+            $q->whereDate('work_date', $date)
+              ->orWhere('status', self::STATUS_RUNNING);
+        });
+    }
 }

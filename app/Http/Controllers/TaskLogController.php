@@ -93,6 +93,10 @@ class TaskLogController extends Controller
     /**
      * Admin-only: edit the work date / start time / end time of a task log,
      * and reassign report type or facility if it was logged wrong.
+     *
+     * NOTE: if end_time is at or before start_time on the same work_date,
+     * we treat it as an overnight task and roll the end time to the next
+     * calendar day (same logic used for attendance corrections).
      */
     public function update(Request $request, TaskLog $taskLog)
     {
@@ -113,10 +117,16 @@ class TaskLogController extends Controller
 
         $workDate = $data['work_date'];
         $startedAt = Carbon::parse($workDate . ' ' . $data['start_time']);
-        $endedAt = $data['end_time'] ? Carbon::parse($workDate . ' ' . $data['end_time']) : null;
 
-        if ($endedAt && $endedAt->lessThan($startedAt)) {
-            return back()->withErrors(['end_time' => 'End time cannot be before start time.']);
+        $endedAt = null;
+        if ($data['end_time']) {
+            $endedAt = Carbon::parse($workDate . ' ' . $data['end_time']);
+
+            // If end time lands at/before start time on the same date, the
+            // task crossed midnight — roll it to the next calendar day.
+            if ($endedAt->lessThanOrEqualTo($startedAt)) {
+                $endedAt->addDay();
+            }
         }
 
         $taskLog->report_type_id = $data['report_type_id'];

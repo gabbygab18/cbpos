@@ -32,24 +32,28 @@ class AttendanceCorrectionController extends Controller
             'admin_notes' => 'nullable|string|max:500',
         ]);
 
-        $log = $correction->loginLog;
-        $tz  = 'Asia/Manila';
+        $log      = $correction->loginLog;
+        $tz       = 'Asia/Manila';
+        $workDate = $log->work_date->format('Y-m-d');
 
-        // Apply the corrected times to the actual login_log
-        if ($correction->requested_login_at) {
-            $log->login_at = Carbon::parse(
-                $log->work_date->format('Y-m-d') . ' ' . $correction->requested_login_at,
-                $tz
-            )->utc();
-        }
+        // Resolve the corrected login time first — it's the anchor point.
+        $newLoginAt = $correction->requested_login_at
+            ? Carbon::parse($workDate . ' ' . $correction->requested_login_at, $tz)
+            : $log->login_at->copy()->setTimezone($tz);
 
+        // Resolve logout relative to login. If it lands at or before login,
+        // the shift crosses midnight — push it to the next calendar day.
         if ($correction->requested_logout_at) {
-            $log->logout_at = Carbon::parse(
-                $log->work_date->format('Y-m-d') . ' ' . $correction->requested_logout_at,
-                $tz
-            )->utc();
+            $newLogoutAt = Carbon::parse($workDate . ' ' . $correction->requested_logout_at, $tz);
+
+            if ($newLogoutAt->lessThanOrEqualTo($newLoginAt)) {
+                $newLogoutAt->addDay();
+            }
+
+            $log->logout_at = $newLogoutAt->utc();
         }
 
+        $log->login_at = $newLoginAt->utc();
         $log->save();
 
         $correction->update([
